@@ -1,51 +1,44 @@
 const { NOT_FOUND, OK, DEFAULT, NO_CONTENT } = require("../utils/constants");
-
 const ClothingItem = require("../models/clothingItem");
 
 const createItem = (req, res) => {
-  const { name, weather, imageURL } = req.body;
+  const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({ name, weather, imageURL })
-    .then((item) => {
-      res.send({ data: item });
-    })
-    .catch((e) => {
-      res.status(DEFAULT).send({ message: "Error from createItem", e });
+  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+    .then((item) => res.send({ data: item }))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(400).send({ message: "Invalid data" });
+      }
+      return res.status(DEFAULT).send({ message: "Error creating item" });
     });
 };
 
-const getItems = (req, res) => {
+const getItems = (req, res) =>
   ClothingItem.find({})
     .then((items) => res.status(OK).send(items))
-    .catch((e) => {
-      res.status(DEFAULT).send({ message: "Error from getItems", e });
+    .catch((err) => {
+      res.status(DEFAULT).send({ message: err.message });
     });
-};
-
-const updateItem = (req, res) => {
-  const { itemId } = req.params;
-  const { imageURL } = req.body;
-
-  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageURL } })
-    .orFail()
-    .then((item) => res.status(OK).send({ data: item }))
-    .catch((e) => {
-      res.status(DEFAULT).send({ message: "Error from updateItem", e });
-    });
-};
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  ClothingItem.findByIdAndDelete(itemId)
+  return ClothingItem.findByIdAndDelete(itemId)
     .orFail()
-    .then((item) => res.status(NO_CONTENT).send({}))
-    .catch((e) => {
-      res.status(DEFAULT).send({ message: "Error from deleteItem", e });
+    .then(() => res.status(NO_CONTENT).send({}))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(400).send({ message: "Invalid item ID" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "Item not found" });
+      }
+      return res.status(DEFAULT).send({ message: "Error deleting item" });
     });
 };
 
-const likeItem = (req, res) => {
+const likeItem = (req, res) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $addToSet: { likes: req.user._id } },
@@ -57,11 +50,13 @@ const likeItem = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
-      return res.status(DEFAULT).send({ message: err.message });
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Invalid item ID" });
+      }
+      return res.status(DEFAULT).send({ message: "Error liking item" });
     });
-};
 
-const unlikeItem = (req, res) => {
+const unlikeItem = (req, res) =>
   ClothingItem.findByIdAndUpdate(
     req.params.itemId,
     { $pull: { likes: req.user._id } },
@@ -73,14 +68,15 @@ const unlikeItem = (req, res) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "Item not found" });
       }
-      return res.status(DEFAULT).send({ message: err.message });
+      if (err.name === "CastError") {
+        return res.status(400).send({ message: "Invalid item ID" });
+      }
+      return res.status(DEFAULT).send({ message: "Error unliking item" });
     });
-};
 
 module.exports = {
   createItem,
   getItems,
-  updateItem,
   deleteItem,
   likeItem,
   unlikeItem,
