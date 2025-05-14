@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
+
 const validator = require("validator");
+
 const userSchema = new mongoose.Schema({});
 
 const clothingItem = new mongoose.Schema({
@@ -16,6 +18,7 @@ const clothingItem = new mongoose.Schema({
       message: "Link is not Valid",
     },
   },
+  likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "user" }],
 });
 
-module.exports = mongoose.model("clothingItems", clothingItem);
+module.exports = mongoose.model("clothingItem", clothingItem);

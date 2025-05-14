@@ -1,0 +1,15 @@
+const BAD_REQUEST = 400;
+const NOT_FOUND = 404;
+const DEFAULT = 500;
+const OK = 200;
+const NO_CONTENT = 204;
+const REQUEST_SUCCESS = 201;
+
+module.exports = {
+  BAD_REQUEST,
+  NOT_FOUND,
+  DEFAULT,
+  OK,
+  NO_CONTENT,
+  REQUEST_SUCCESS,
+};

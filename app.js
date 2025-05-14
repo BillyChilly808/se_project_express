@@ -1,5 +1,7 @@
 const express = require("express");
+
 const mongoose = require("mongoose");
+
 const app = express();
 const { PORT = 3001 } = process.env;
 
@@ -11,6 +13,7 @@ mongoose
   .catch(console.error);
 
 const routes = require("./routes");
+
 app.use(express.json());
 app.use("/", routes);
 
