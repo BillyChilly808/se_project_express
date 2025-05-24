@@ -10,14 +10,22 @@ const userSchema = new mongoose.Schema({
   },
   avatar: {
     type: String,
-    required: [true, "The avatar field is required."],
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
     validate: {
-      validator(value) {
-        return validator.isURL(value);
-      },
-      message: "You must enter a valid URL",
+      validator: (v) => validator.isEmail(v),
+      message: "Invalid email format",
     },
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
   },
 });
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model("User", userSchema);
