@@ -1,3 +1,6 @@
+const jwt = require("jsonwebtoken");
+const { JWT_SECRET } = require("../utils/config");
+
 const bcrypt = require("bcryptjs");
 const {
   NOT_FOUND,
@@ -65,4 +68,19 @@ const getUser = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser };
+const login = (req, res) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+        expiresIn: "7d",
+      });
+      res.send({ token });
+    })
+    .catch(() => {
+      res.status(401).send({ message: "Incorrect email or password" });
+    });
+};
+
+module.exports = { getUsers, createUser, getUser, login };

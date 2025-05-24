@@ -4,6 +4,7 @@ const DEFAULT = 500;
 const OK = 200;
 const NO_CONTENT = 204;
 const REQUEST_SUCCESS = 201;
+const CONFLICT = 409;
 
 module.exports = {
   BAD_REQUEST,
@@ -12,4 +13,5 @@ module.exports = {
   OK,
   NO_CONTENT,
   REQUEST_SUCCESS,
+  CONFLICT,
 };
