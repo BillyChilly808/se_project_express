@@ -1,10 +1,16 @@
-const { OK, BAD_REQUEST, NOT_FOUND, DEFAULT } = require("../utils/constants");
+const {
+  OK,
+  BAD_REQUEST,
+  NOT_FOUND,
+  DEFAULT,
+  FORBIDDEN,
+} = require("../utils/constants");
 const ClothingItem = require("../models/clothingItem");
 
 const createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
 
-  return ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => res.status(OK).send({ data: item }))
     .catch((err) => {
       if (err.name === "ValidationError") {
@@ -28,11 +34,21 @@ const getItems = (req, res) =>
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
 
-  return ClothingItem.findByIdAndDelete(itemId)
+  ClothingItem.findById(itemId)
     .orFail()
-    .then((deletedItem) =>
-      res.status(OK).send({ message: "Item deleted", data: deletedItem })
-    )
+    .then((item) => {
+      if (item.owner.toString() !== req.user._id) {
+        return res
+          .status(FORBIDDEN)
+          .send({ message: "You cannot delete someone else's item" });
+      }
+
+      return item
+        .deleteOne()
+        .then(() =>
+          res.status(OK).send({ message: "Item deleted", data: item })
+        );
+    })
     .catch((err) => {
       if (err.name === "ValidationError" || err.name === "CastError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid item ID" });

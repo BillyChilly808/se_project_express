@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+
+const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 
-const bcrypt = require("bcryptjs");
 const {
   NOT_FOUND,
   OK,
@@ -11,8 +13,7 @@ const {
   CONFLICT,
 } = require("../utils/constants");
 
-const User = require("../models/user");
-
+// GET all users (optional if auth system doesn't require this anymore)
 const getUsers = (req, res) => {
   User.find({})
     .then((users) => res.status(OK).send(users))
@@ -23,6 +24,7 @@ const getUsers = (req, res) => {
     );
 };
 
+// POST /signup
 const createUser = (req, res) => {
   const { name, avatar, email, password } = req.body;
 
@@ -47,8 +49,9 @@ const createUser = (req, res) => {
     });
 };
 
-const getUser = (req, res) => {
-  const { userId } = req.params;
+// GET /users/me
+const getCurrentUser = (req, res) => {
+  const userId = req.user._id;
 
   User.findById(userId)
     .orFail()
@@ -68,6 +71,31 @@ const getUser = (req, res) => {
     });
 };
 
+// PATCH /users/me
+const updateUser = (req, res) => {
+  const { name, avatar } = req.body;
+
+  User.findByIdAndUpdate(
+    req.user._id,
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .orFail()
+    .then((user) => res.status(OK).send(user))
+    .catch((err) => {
+      if (err.name === "ValidationError") {
+        return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
+      }
+      if (err.name === "DocumentNotFoundError") {
+        return res.status(NOT_FOUND).send({ message: "User not found" });
+      }
+      return res
+        .status(DEFAULT)
+        .send({ message: "An error has occurred on the server." });
+    });
+};
+
+// POST /signin
 const login = (req, res) => {
   const { email, password } = req.body;
 
@@ -83,4 +111,10 @@ const login = (req, res) => {
     });
 };
 
-module.exports = { getUsers, createUser, getUser, login };
+module.exports = {
+  getUsers,
+  createUser,
+  getCurrentUser,
+  updateUser,
+  login,
+};
