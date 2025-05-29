@@ -11,18 +11,8 @@ const {
   REQUEST_SUCCESS,
   BAD_REQUEST,
   CONFLICT,
+  UNAUTHORIZED,
 } = require("../utils/constants");
-
-// GET all users (optional if auth system doesn't require this anymore)
-const getUsers = (req, res) => {
-  User.find({})
-    .then((users) => res.status(OK).send(users))
-    .catch(() =>
-      res
-        .status(DEFAULT)
-        .send({ message: "An error has occurred on the server." })
-    );
-};
 
 // POST /signup
 const createUser = (req, res) => {
@@ -55,7 +45,11 @@ const getCurrentUser = (req, res) => {
 
   User.findById(userId)
     .orFail()
-    .then((user) => res.status(OK).send(user))
+    .then((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      res.status(OK).send(userObj);
+    })
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
         return res.status(NOT_FOUND).send({ message: "User not found" });
@@ -81,7 +75,11 @@ const updateUser = (req, res) => {
     { new: true, runValidators: true }
   )
     .orFail()
-    .then((user) => res.status(OK).send(user))
+    .then((user) => {
+      const userObj = user.toObject();
+      delete userObj.password;
+      res.status(OK).send(userObj);
+    })
     .catch((err) => {
       if (err.name === "ValidationError") {
         return res.status(BAD_REQUEST).send({ message: "Invalid user data" });
@@ -99,6 +97,13 @@ const updateUser = (req, res) => {
 const login = (req, res) => {
   const { email, password } = req.body;
 
+  // Input validation
+  if (!email || !password) {
+    return res
+      .status(BAD_REQUEST)
+      .send({ message: "Email and password are required" });
+  }
+
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
@@ -106,13 +111,17 @@ const login = (req, res) => {
       });
       res.send({ token });
     })
-    .catch(() => {
-      res.status(401).send({ message: "Incorrect email or password" });
+    .catch((err) => {
+      if (err.message === "Incorrect email or password") {
+        return res.status(UNAUTHORIZED).send({ message: err.message });
+      }
+      return res
+        .status(DEFAULT)
+        .send({ message: "An error has occurred on the server." });
     });
 };
 
 module.exports = {
-  getUsers,
   createUser,
   getCurrentUser,
   updateUser,

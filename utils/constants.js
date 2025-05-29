@@ -1,17 +1,21 @@
-const BAD_REQUEST = 400;
-const NOT_FOUND = 404;
-const DEFAULT = 500;
 const OK = 200;
-const NO_CONTENT = 204;
-const REQUEST_SUCCESS = 201;
+const CREATED = 201;
+const REQUEST_SUCCESS = 200;
+const BAD_REQUEST = 400;
+const UNAUTHORIZED = 401;
+const FORBIDDEN = 403; // 👈 Add this line
+const NOT_FOUND = 404;
 const CONFLICT = 409;
+const DEFAULT = 500;
 
 module.exports = {
-  BAD_REQUEST,
-  NOT_FOUND,
-  DEFAULT,
   OK,
-  NO_CONTENT,
+  CREATED,
   REQUEST_SUCCESS,
+  BAD_REQUEST,
+  UNAUTHORIZED,
+  FORBIDDEN, // 👈 Export it too
+  NOT_FOUND,
   CONFLICT,
+  DEFAULT,
 };
