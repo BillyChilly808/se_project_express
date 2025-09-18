@@ -9,9 +9,10 @@ const { createUser, login } = require("../controllers/users");
 router.post("/signup", createUser);
 router.post("/signin", login);
 
-router.get("/items", clothingItemRouter);
+router.use("/items", clothingItemRouter);
 
-router.use("/items", auth, clothingItemRouter);
+router.use(auth);
+
 router.use("/users", userRouter);
 
 router.use((req, res) => {

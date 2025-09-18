@@ -16,6 +16,8 @@ const userSchema = new mongoose.Schema({
       validator: (v) => validator.isURL(v),
       message: "Invalid URL format",
     },
+    default:
+      "https://practicum-content.s3.us-west-1.amazonaws.com/avatars/default-avatar.png",
   },
   email: {
     type: String,
